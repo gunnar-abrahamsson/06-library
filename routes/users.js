@@ -1,9 +1,21 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
+const { index, show, store, update, destroy } = require('../controllers/user_controller');
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
+const { validateStore } = require('../validation/user_validation')
+/* GET / */
+router.get('/', index);
+
+/* GET /:authorId */
+router.get('/:userId', show);
+
+/* POST / */
+router.post('/', validateStore, store);
+
+/* Update a specific resource */
+router.put('/:userId', update);
+
+/* Destroy a specific resource /:userId */
+router.delete('/:userId', destroy);
 
 module.exports = router;

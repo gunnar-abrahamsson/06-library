@@ -1,9 +1,15 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+/* GET / */
+router.get('/', (req, res) => {
+	res.send({ status: 'you had me at EHLO' });
 });
+
+router.use('/books', require('./books'));
+
+router.use('/authors', require('./authors'));
+
+router.use('/users', require('./users'));
 
 module.exports = router;
