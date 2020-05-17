@@ -1,9 +1,9 @@
-const models = require('../models');
+const { Book } = require('../models');
 
 // Get /
 const index = async (req, res) => {
-	// const all_books = await models.Book.fetchAll();
-	const all_books = await new models.Book({}).fetchAll();
+	// const all_books = await Book.fetchAll();
+	const all_books = await new Book({}).fetchAll();
 
 	res.send({
 		status: 'success',
@@ -16,8 +16,8 @@ const index = async (req, res) => {
 // Get /:bookId
 const show = async (req, res) => {
 	// select * from books where id = 1
-    const book = await models.Book.where({ id: req.params.bookId}).fetch({ withRelated: ['author', 'users'] });
-	// const book = await models.Book.findByPk(req.params.bookId);
+    const book = await Book.where({ id: req.params.bookId}).fetch({ withRelated: ['author', 'users'] });
+	// const book = await Book.findByPk(req.params.bookId);
 
 	res.send({
 		status: 'success',

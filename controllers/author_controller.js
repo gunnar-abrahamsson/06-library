@@ -1,7 +1,7 @@
-const models = require('../models');
+const { Author } = require('../models');
 
 const index = async (req, res) => {
-	const all_authors = await new models.Author({}).fetchAll();
+	const all_authors = await new Author({}).fetchAll();
 
 	res.send({
 		status: 'success',
@@ -13,7 +13,7 @@ const index = async (req, res) => {
 
 const show = async (req, res) => {
 	// select * from authors where id = 1
-    const author = await models.Author.where({ id: req.params.authorId}).fetch({ withRelated: 'books' });
+    const author = await Author.where({ id: req.params.authorId}).fetch({ withRelated: 'books' });
 
 	res.send({
 		status: 'success',
