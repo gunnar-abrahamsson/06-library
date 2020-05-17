@@ -2,6 +2,8 @@ const { User } = require('../models');
 const { validationResult, matchedData } = require('express-validator')
 
 const index = async (req, res) => {
+
+    console.log('req headers auth: ', req.headers.authorization)
     try{
         const all_users = await User.fetchAll();
     
@@ -103,7 +105,7 @@ const update = async (req, res) => {
             status: 'success',
             data: updatedUser,
         })
-        
+
     } catch (error) {
         res.status(500).send({
             status: 'error',
