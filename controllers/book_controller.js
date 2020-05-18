@@ -16,7 +16,7 @@ const index = async (req, res) => {
 // Get /:bookId
 const show = async (req, res) => {
 	// select * from books where id = 1
-    const book = await Book.where({ id: req.params.bookId}).fetch({ withRelated: ['author', 'users'] });
+    const book = await Book.where({ id: req.params.bookId}).fetch({ withRelated: ['author'] });
 	// const book = await Book.findByPk(req.params.bookId);
 
 	res.send({

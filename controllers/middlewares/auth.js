@@ -2,10 +2,11 @@
  * Authentication middleware
  */
 
+const bcrypt = require('bcrypt');
+
 const { User } = require('../../models')
 
 const basic = async (req, res, next) => {
-    console.log('hello from auth.basic')
 
     // check if Authorization header exists, otherwise bail
     if(!req.headers.authorization){
@@ -22,32 +23,40 @@ const basic = async (req, res, next) => {
     // [1] = "as32132dasj231hk32kh23h3kjKJK2"
 
     const [authSchema, base64Payload] = req.headers.authorization.split(' ');
-
-    if(!authSchema.toLowerCase() === ' basic') {
+    if(authSchema.toLowerCase() !== 'basic') {
         // not ours to authenticate
         next();
     }
-
+    
     //decode payload
-
-    const decodedPayload = new Buffer(base64Payload, 'base64').toString('ascii')
-
+    
+    const decodedPayload = Buffer.from(base64Payload, 'base64').toString('ascii')
+    
     const [username, password] = decodedPayload.split(':');
-
-    const user = await new User({ username, password}).fetch({require: false});
-
-    if(!user){
-        res.status(401).send({
-            status: 'fail',
-            data: 'Authorization failed'
+    try {
+        const user = await User.login(username, password);
+        //bail if user is false
+    
+        if(!user){
+            res.status(401).send({
+                status: 'fail',
+                data: 'Authorization failed'
+            })
+            return;
+        }
+    
+        //attach user to req;
+        
+        req.user = user;
+        //delete req.user.attributes.password
+        next();
+    } catch (error) {
+        res.status(500).send({
+            status: 'error',
+            message: 'Error when trying to authenticate'
         })
-        return;
+        throw error;
     }
-
-    //attach user to req;
-    req.user = user;
-
-    next();
 }
 
 module.exports = {
