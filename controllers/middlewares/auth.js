@@ -2,8 +2,6 @@
  * Authentication middleware
  */
 
-const bcrypt = require('bcrypt');
-
 const { User } = require('../../models')
 
 const basic = async (req, res, next) => {

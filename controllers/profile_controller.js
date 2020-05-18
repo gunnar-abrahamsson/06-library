@@ -83,7 +83,12 @@ const updateProfile = async (req, res) => {
 
     //get valid data
     const validData = matchedData(req);
+
     try{
+        if(validData.password) {
+            //call password from user
+            validData.password = await User.updatePassword(validData.password)
+        }
         const updateProfiledUser = await req.user.save(validData);
         console.log("UpdateProfile user successufly:", updateProfiledUser);
         res.send({

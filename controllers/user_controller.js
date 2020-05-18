@@ -117,7 +117,9 @@ const update = async (req, res) => {
         console.log("Update user successufly:", updatedUser);
         res.status(405).send({
             status: 'success',
-            data: updatedUser,
+            data: {
+                user: updatedUser,
+            },
         })
 
     } catch (error) {

@@ -11,7 +11,7 @@ module.exports = (bookshelf) => {
         },
     }, {
         hashSaltRounds: 10,
-        login:  async function(username, password) {
+        async login(username, password) {
             //Get user from db
             try{
                 let user = await new this({ username }).fetch({require: false});
@@ -22,32 +22,41 @@ module.exports = (bookshelf) => {
                 
                 //check if password is hashed
                 if(user.get('password') === password) {
-                    await this.updatePassword(user);
+                    await this.hashPassword(user);
                     user = await new this({ username }).fetch({require: false});
                 }
                 
                 //check if password matches
                 const hash = user.get('password');
                 
-                const result = await bcrypt.compare(password, hash);
-    
                 //return false if password is incorrect
-                if(!result) {
-                    return false;
-                }
-    
                 //return user
-                return user;
+                return (await bcrypt.compare(password, hash))
+                    ? user
+                    :false;
 
             } catch(error) {
                 throw error;
             }
         },
-        updatePassword: async function(user) {
+        async checkAndUpdatePassword(user, password) {
+            //check if password is hashed
+            if(user.get('password') === password) {
+                await this.hashPassword(user);
+                user = await new this({ username }).fetch({require: false});
+            }
+
+            return user;
+        },
+        async updatePassword(password) {
+            const hash = await bcrypt.hash(password, this.hashSaltRounds);
+            return hash;
+        },
+        async hashPassword(user) {
             //get password
             try{
                 const password = user.get('password');
-                const hash = await bcrypt.hash(password, this.hashSaltRounds);
+                const hash = await this.updatePassword(password);
                 const updatedUser = await user.save({password: hash});
 
                 return updatedUser;
