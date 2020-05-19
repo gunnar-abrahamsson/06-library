@@ -4,17 +4,9 @@ const { validationResult, matchedData } = require('express-validator')
 // get a users profile
 const getProfile = async (req, res) => {
 
-    if (!req.user) {
-        res.status(401).send({
-            status: 'fail',
-            data: 'Authentication is required'
-        });
-        return;
-    }
-
     let user;
     try{
-        user = await new User({ id: req.user.sub}).fetch();
+        user = await User.fetchById(req.user.sub);
     } catch (error) {
         res.sendStatus(404);
         throw error
@@ -35,16 +27,19 @@ const getProfile = async (req, res) => {
 
 //get the authenticated users books
 const getBooks = async (req, res) => {
-    if (!req.user) {
-        res.status(401).send({
-            status: 'fail',
-            data: 'Authentication is required'
-        });
+    let user = null;
+
+    try{
+        //query db for user and eager load the books
+        user = await User.fetchById(req.user.sub, { withRelated: 'books'});
+    } catch(error) {
+        console.error(error);
+        res.sendStatus(404);
         return;
     }
     try{
         //get all books for a profile
-        const books = await req.user.related('books').fetch();
+        const books = user.related('books')
         res.send({
             status: 'success',
             data: books
@@ -60,14 +55,17 @@ const getBooks = async (req, res) => {
 
 // Put update authorized profile
 const updateProfile = async (req, res) => {
-    //check if user is loged in
-    if(!req.user) {
-        res.status(401).send({
-            status: 'fail',
-            data: 'Authentication is required'
-        });
+    let user = null;
+
+    try{
+        //query db for user
+        user = await User.fetchById(req.user.sub);
+    } catch(error) {
+        console.error(error);
+        res.sendStatus(404);
         return;
     }
+
     const errors = validationResult(req)
 
     //check or errors in req
@@ -87,12 +85,9 @@ const updateProfile = async (req, res) => {
             //call password from user
             validData.password = await User.updatePassword(validData.password)
         }
-        const updateProfiledUser = await req.user.save(validData);
+        const updateProfiledUser = await user.save(validData);
         console.log("UpdateProfile user successufly:", updateProfiledUser);
-        res.send({
-            status: 'success',
-            data: updateProfiledUser,
-        });
+        res.sendStatus(204) // Successfuly proccessed the request, there is no content to send for this request
 
     } catch (error) {
         res.status(500).send({
