@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { loginRules } = require('../validation/login_validation')
+const auth = require('../controllers/middlewares/auth');
 /* GET / */
 router.get('/', (req, res) => {
 	res.send({ status: 'you had me at EHLO' });
@@ -12,7 +13,7 @@ router.use('/books', require('./books'));
 router.post('/login', [loginRules], require('../controllers/login_controller'));
 
 // add ability to validate JTW's
-router.use('/profile', require('./profile'))
+router.use('/profile', [auth.validateJwtToken], require('./profile'))
 router.use('/users', require('./users'));
 
 module.exports = router;

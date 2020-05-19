@@ -1,46 +1,20 @@
 const { User } = require('../models');
 const { validationResult, matchedData } = require('express-validator')
-const jwt = require('jsonwebtoken');
 
 // get a users profile
 const getProfile = async (req, res) => {
 
-    //check that we have Authorization header
-    if (!req.headers.authorization) {
+    if (!req.user) {
         res.status(401).send({
             status: 'fail',
             data: 'Authentication is required'
         });
         return;
-    }
-    //split authorizaton header into its pieces
-    const [authType, token] = req.headers.authorization.split(' ')
-    //check that the Authorization type is Bearer
-    if (authType.toLowerCase() !== 'bearer') {
-        res.status(401).send({
-            status: 'fail',
-            data: 'Authentication is required'
-        });
-        return;
-    }
-
-    // Validate token and extract payload
-    let payload;
-    try{
-        payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-        
-
-    } catch (error) {
-        res.status(401).send({
-            status: 'fail',
-            data: 'Authentication failed'
-        });
-        throw error
     }
 
     let user;
     try{
-        user = await new User({ id: payload.sub}).fetch();
+        user = await new User({ id: req.user.sub}).fetch();
     } catch (error) {
         res.sendStatus(404);
         throw error
@@ -59,38 +33,6 @@ const getProfile = async (req, res) => {
     });
 }
 
-// const getProfile = async (req, res) => {
-
-//     if (!req.user) {
-//         res.status(401).send({
-//             status: 'fail',
-//             data: 'Authentication is required'
-//         });
-//         return;
-//     }
-
-//     // const user = {
-//     //     username: req.user.username,
-//     //     id: req.user.id,
-//     //     first_name: req.user.first_name,
-//     //     last_name: req.user.last_name,
-//     // }
-//     try{
-//         res.send({
-//             status: 'success',
-//             data: {
-//                 user: req.user,
-//             }
-//         });
-
-//     } catch (error) {
-//         res.status(500).send({
-//             status: 'error',
-//             message: 'Exception thrown when trying to get all users from database'
-//         });
-//         throw error
-//     }
-// }
 //get the authenticated users books
 const getBooks = async (req, res) => {
     if (!req.user) {
