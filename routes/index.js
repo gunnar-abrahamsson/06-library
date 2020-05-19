@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../controllers/middlewares/auth')
+const { loginRules } = require('../validation/login_validation')
 /* GET / */
 router.get('/', (req, res) => {
 	res.send({ status: 'you had me at EHLO' });
@@ -8,8 +8,11 @@ router.get('/', (req, res) => {
 
 router.use('/authors', require('./authors'));
 router.use('/books', require('./books'));
+// add ability to login and get a JWT
+router.post('/login', [loginRules], require('../controllers/login_controller'));
 
-router.use('/profile', [auth.basic], require('./profile'))
+// add ability to validate JTW's
+router.use('/profile', require('./profile'))
 router.use('/users', require('./users'));
 
 module.exports = router;
