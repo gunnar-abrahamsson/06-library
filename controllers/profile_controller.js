@@ -1,12 +1,12 @@
-const { User } = require('../models');
-const { validationResult, matchedData } = require('express-validator')
+const { User, Book } = require('../models');
+const { validationResult, matchedData } = require('express-validator');
 
 // get a users profile
 const getProfile = async (req, res) => {
 
     let user;
     try{
-        user = await User.fetchById(req.user.sub);
+        user = await User.fetchById(req.user.data.id);
     } catch (error) {
         res.sendStatus(404);
         throw error
@@ -25,13 +25,59 @@ const getProfile = async (req, res) => {
     });
 }
 
+/**
+ * add a book to a users profile
+ */
+
+const addBook = async (req, res) => {
+    // 0. get book id that we want to add
+    const errors = validationResult(req)
+
+    if(!errors.isEmpty()) {
+        res.status(422).send({
+            status: 'fail',
+            data: errors.array()
+        })
+        return;
+    }
+
+    const validData = matchedData(req);
+    const bookId = validData.book_id;
+
+    // 1. make sure book that we want actually exists
+    try{
+        const book = await Book.fetchById(bookId);
+        // 2. attach book to user (create a row in books_users for this book and user)
+        
+        // 2.1 fetch User model
+        const user = await User.fetchById(req.user.data.id);
+
+        // check if user allready has a relation to that book
+    
+        // 2.2 on User model, call attach on the books() relation and pass the Book bodel
+        const result = await user.books().attach(book);
+        // 3. return 201 Create if successful
+        res.status(201).send({
+            status: 'Success',
+            data: result,
+        })
+    } catch (err) {
+        res.status(500).send({
+            status: 'error',
+            message: 'error while trying to add book to profile',
+        })
+    }
+
+
+}
+
 //get the authenticated users books
 const getBooks = async (req, res) => {
     let user = null;
 
     try{
         //query db for user and eager load the books
-        user = await User.fetchById(req.user.sub, { withRelated: 'books'});
+        user = await User.fetchById(req.user.data.id, { withRelated: 'books'});
     } catch(error) {
         console.error(error);
         res.sendStatus(404);
@@ -53,13 +99,14 @@ const getBooks = async (req, res) => {
     }
 }
 
+
 // Put update authorized profile
 const updateProfile = async (req, res) => {
     let user = null;
 
     try{
         //query db for user
-        user = await User.fetchById(req.user.sub);
+        user = await User.fetchById(req.user.data.id);
     } catch(error) {
         console.error(error);
         res.sendStatus(404);
@@ -100,6 +147,7 @@ const updateProfile = async (req, res) => {
 
 module.exports = {
     getProfile,
+    addBook,
     getBooks,
     updateProfile,
 }

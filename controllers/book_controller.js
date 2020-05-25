@@ -15,16 +15,25 @@ const index = async (req, res) => {
 
 // Get /:bookId
 const show = async (req, res) => {
-	// select * from books where id = 1
-    const book = await Book.where({ id: req.params.bookId}).fetch({ withRelated: ['author'] });
+    // select * from books where id = 1
+    try {
+        const book = await Book.where({ id: req.params.bookId}).fetch({ withRelated: ['author'] });
+        res.send({
+            status: 'success',
+            data: {
+                book,
+            }
+        });
+
+    } catch (err) {
+        res.send(404).send({
+            status: 'fail',
+            data: 'No book found'
+        })
+        throw err;
+    }
 	// const book = await Book.findByPk(req.params.bookId);
 
-	res.send({
-		status: 'success',
-		data: {
-			book,
-		}
-	});
 }
 
 // Post /
